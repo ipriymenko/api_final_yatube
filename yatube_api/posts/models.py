@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q, F
+
 
 User = get_user_model()
 
@@ -24,3 +26,26 @@ class Comment(models.Model):
     text = models.TextField()
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower'
+    )
+    following = models.ForeignKey(
+        User,
+        verbose_name="Автор",
+        on_delete=models.CASCADE,
+        related_name='following'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            ),
+            models.CheckConstraint(name='user_cant_follow_self', check=~Q(user=F('following')))
+        ]
