@@ -1,8 +1,8 @@
-from rest_framework import viewsets
-from rest_framework import permissions
+from rest_framework import filters, permissions, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import APIException
+from django.db.models import F
 
 from posts.models import Post, Comment, Group, Follow
 from .permissions import IsAuthorOrReadOnly
@@ -12,7 +12,7 @@ from .serializers import PostSerializer, CommentSerializer, GroupSerializer, Fol
 class ApiBadRequest(APIException):
     status_code = 400
     default_detail = 'Неверный запрос!'
-    default_code = 'bad request'
+    default_code = 'Bad request'
 
 
 class GroupListViewSet(viewsets.ReadOnlyModelViewSet):
@@ -24,7 +24,6 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly & IsAuthorOrReadOnly]
-
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
@@ -47,13 +46,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
-    permission_classes = [permissions.IsAuthenticated & IsAuthorOrReadOnly]
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('following__username',)
 
     def get_queryset(self):
-        return Follow.objects.filter(user=self.request.user)
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
-        following = serializer.validated_data['following']
-        if following == self.request.user:
-            raise ApiBadRequest('Нельзя подписаться на самого себя!')
+        # following = serializer.validated_data['following']
+        # if following == self.request.user:
+        #     raise ApiBadRequest('Нельзя подписаться на самого себя!')
+        # if self.get_queryset().filter(following=following).exists():
+        #     raise ApiBadRequest('Уже подписан на этого пользователя!')
         serializer.save(user=self.request.user)
