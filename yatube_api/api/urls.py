@@ -6,7 +6,12 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from .views import PostViewSet, CommentViewSet, GroupListViewSet, FollowViewSet
+from .views import (
+    PostViewSet,
+    CommentViewSet,
+    GroupListViewSet,
+    FollowViewSet
+)
 
 app_name = 'api'
 API_VER = 'v1'
@@ -23,7 +28,7 @@ router.register(
 
 urlpatterns = [
     path(f'{API_VER}/', include(router.urls)),
-    path(f'{API_VER}/jwt/create/', TokenObtainPairView.as_view(), name='jwt_create'),
-    path(f'{API_VER}/jwt/refresh/', TokenRefreshView.as_view(), name='jwt_refresh'),
-    path(f'{API_VER}/jwt/verify/', TokenVerifyView.as_view(), name='jwt_verify'),
+    path(f'{API_VER}/jwt/create/', TokenObtainPairView.as_view()),
+    path(f'{API_VER}/jwt/refresh/', TokenRefreshView.as_view()),
+    path(f'{API_VER}/jwt/verify/', TokenVerifyView.as_view()),
 ]
